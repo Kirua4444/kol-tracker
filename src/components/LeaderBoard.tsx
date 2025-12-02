@@ -16,24 +16,30 @@ type Kol = {
 };
 
 async function getKols(): Promise<Kol[]> {
+  // Use mock data during static build to avoid invalid fetch URLs
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return [
+      { id: 1, username: "aeyakovenko", display_name: "Anatoly", avatar_url: "https://unavatar.io/x/aeyakovenko", badge: "💎", accuracy: 93.5, calls: 87, roi: "+842%" },
+      { id: 2, username: "GiganticRebirth", display_name: "GCR", avatar_url: "https://unavatar.io/x/GiganticRebirth", badge: "💎", accuracy: 91.2, calls: 156, roi: "+1267%" },
+      { id: 3, username: "CryptoFlow", display_name: "Flow", avatar_url: "https://unavatar.io/x/CryptoFlow", badge: "⭐", accuracy: 88.9, calls: 203, roi: "+954%" },
+      { id: 4, username: "Luna", display_name: "Luna", avatar_url: "https://unavatar.io/x/Luna", badge: "⭐", accuracy: 85.3, calls: 298, roi: "+712%" },
+      { id: 5, username: "Trader", display_name: "Trader", avatar_url: "https://unavatar.io/x/Trader", badge: "", accuracy: 82.1, calls: 401, roi: "+523%" },
+    ];
+  }
   try {
-    // Construire URL absolue en prod/dev, use fallback pendant build si pas d'env var
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : process.env.NEXT_PUBLIC_API_URL 
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NEXT_PUBLIC_API_URL
       ? process.env.NEXT_PUBLIC_API_URL
       : "http://localhost:3000";
 
     const res = await fetch(`${baseUrl}/api/kols`, {
-      next: { revalidate: 60 }, // refresh toutes les 60 secondes
+      next: { revalidate: 60 },
     });
-
     if (!res.ok) throw new Error("fetch failed");
-
     const data = await res.json();
     return data;
   } catch (error) {
-    // Fallback propre si jamais ça plante (build Vercel, clés manquantes, etc.)
     console.warn("Using fallback KOLs data", error);
     return [
       { id: 1, username: "aeyakovenko", display_name: "Anatoly", avatar_url: "https://unavatar.io/x/aeyakovenko", badge: "💎", accuracy: 93.5, calls: 87, roi: "+842%" },

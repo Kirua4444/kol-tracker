@@ -2,26 +2,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
 
-async function getKols() {
-  const { data, error } = await supabase
-    .from('kols')
-    .select('*')
-    .order('id', { ascending: true });
+type Kol = {
+  id: number;
+  username: string;
+  display_name: string;
+  avatar_url: string;
+  badge: string;
+  accuracy: number;
+  calls: number;
+  roi: string;
+};
 
-  if (error) {
-    console.error(error);
-    return [];
-  }
-
-  // Stats temporaires réalistes (on passera aux vraies demain)
-  return data.map((kol: any, index: number) => ({
-    ...kol,
-    accuracy: Number((94 - index * 1.4).toFixed(1)),
-    calls: 380 + index * 27 + Math.floor(Math.random() * 100),
-    roi: `+${(1350 - index * 110)}%`,
-  }));
+async function getKols(): Promise<Kol[]> {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000'}/api/kols`, {
+    next: { revalidate: 60 }, // refresh toutes les minutes
+  });
+  return res.json();
 }
 
 export default async function LeaderBoard() {
@@ -34,7 +31,7 @@ export default async function LeaderBoard() {
           Top Crypto KOLs Tracker
         </h1>
         <p className="text-center text-gray-400 mb-12 text-lg">
-          Live accuracy & ROI • 100 % réelles depuis Supabase 🔥
+          Live accuracy & ROI • 100 % réelles 🔥
         </p>
 
         <Card className="bg-zinc-950 border-zinc-800 rounded-2xl overflow-hidden">
@@ -49,7 +46,7 @@ export default async function LeaderBoard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {kols.map((kol: any, index: number) => (
+              {kols.map((kol, index) => (
                 <TableRow key={kol.id} className="border-zinc-800 hover:bg-zinc-900/70 transition-all">
                   <TableCell className="font-bold text-2xl text-purple-400">#{index + 1}</TableCell>
                   <TableCell>
@@ -67,22 +64,14 @@ export default async function LeaderBoard() {
                       </Badge>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right text-3xl font-bold text-green-400">
-                    {kol.accuracy}%
-                  </TableCell>
+                  <TableCell className="text-right text-3xl font-bold text-green-400">{kol.accuracy}%</TableCell>
                   <TableCell className="text-right text-gray-300 text-lg">{kol.calls}</TableCell>
-                  <TableCell className="text-right text-3xl font-bold text-green-400">
-                    {kol.roi}
-                  </TableCell>
+                  <TableCell className="text-right text-3xl font-bold text-green-400">{kol.roi}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </Card>
-
-        <p className="text-center text-gray-500 mt-12 text-sm">
-          V1 live • Scraping automatique des calls en cours de dev 🚀
-        </p>
       </div>
     </div>
   );

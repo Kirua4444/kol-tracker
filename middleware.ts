@@ -1,13 +1,12 @@
-// middleware.ts
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+// middleware.ts → à la racine du projet
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  // On désactive TOUTE protection / login / redirect
-  return NextResponse.next()
+  // Laisse passer absolument tout le monde, pas d'auth
+  return NextResponse.next();
 }
 
-// On applique ce middleware à TOUT le site
 export const config = {
-  matcher: '/((?!api|_next/static|_next/image|favicon.ico).*)',
-}
+  matcher: "/((?!api|_next/static|_next/image|favicon.ico).*)",
+};

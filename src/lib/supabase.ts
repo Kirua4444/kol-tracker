@@ -1,19 +1,30 @@
 // src/lib/supabase.ts
-import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { createClient } from '@supabase/supabase-js'
 
+// On récupère les variables d’environnement
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-// Si on est en build (ssr) et que les vars sont pas définies → on retourne un client vide qui ne crashe pas
+// Si on est en build Vercel et que les clés sont pas encore là → on retourne un client "dummy" qui ne crashe pas
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase env vars missing – using dummy client for build')
-  // @ts-ignore
-  export const supabase = {
-    from: () => ({ select: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) }),
+  console.warn('Supabase keys missing during build – returning dummy client')
+  const dummy = {
+    from: () => ({
+      select: () => ({
+        order: () => Promise.resolve({ data: [], error: null }),
+        eq: () => dummy.from().select(),
+        // on ajoute quelques méthodes bidon pour éviter les erreurs
+      }),
+    }),
   }
+  // @ts-ignore
+  globalThis.supabaseClient = dummy
+  export const supabase = dummy
 } else {
-  export const supabase = typeof window !== 'undefined' 
-    ? createBrowserSupabaseClient() // client côté navigateur
-    : createClient(supabaseUrl, supabaseAnonKey) // client côté serveur
+  const client = createClient(supabaseUrl, supabaseAnonKey)
+  globalThis.supabaseClient = client
+  export const supabase = client
 }
+
+// Export par défaut aussi (au cas où)
+export default supabase

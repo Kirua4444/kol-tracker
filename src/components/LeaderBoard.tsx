@@ -17,8 +17,14 @@ type Kol = {
 
 async function getKols(): Promise<Kol[]> {
   try {
-    // URL relative fonctionne sur serveur (build, dev, prod inclus Vercel)
-    const res = await fetch("/api/kols", {
+    // Construire URL absolue en prod/dev, use fallback pendant build si pas d'env var
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : process.env.NEXT_PUBLIC_API_URL 
+      ? process.env.NEXT_PUBLIC_API_URL
+      : "http://localhost:3000";
+
+    const res = await fetch(`${baseUrl}/api/kols`, {
       next: { revalidate: 60 }, // refresh toutes les 60 secondes
     });
 

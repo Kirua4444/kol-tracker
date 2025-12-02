@@ -1,30 +1,22 @@
 // src/lib/supabase.ts
 import { createClient } from '@supabase/supabase-js'
 
-// On récupère les variables d’environnement
+// On désactive totalement le SSR pour ce fichier (c’est la ligne magique)
+export const dynamic = 'force-dynamic'
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-// Si on est en build Vercel et que les clés sont pas encore là → on retourne un client "dummy" qui ne crashe pas
+// Si les clés sont pas là (build Vercel), on retourne un client qui renvoie des données mock
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase keys missing during build – returning dummy client')
-  const dummy = {
+  console.warn('Supabase env missing → returning mock data')
+  export const supabase = {
     from: () => ({
       select: () => ({
         order: () => Promise.resolve({ data: [], error: null }),
-        eq: () => dummy.from().select(),
-        // on ajoute quelques méthodes bidon pour éviter les erreurs
       }),
     }),
-  }
-  // @ts-ignore
-  globalThis.supabaseClient = dummy
-  export const supabase = dummy
+  } as any
 } else {
-  const client = createClient(supabaseUrl, supabaseAnonKey)
-  globalThis.supabaseClient = client
-  export const supabase = client
+  export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 }
-
-// Export par défaut aussi (au cas où)
-export default supabase

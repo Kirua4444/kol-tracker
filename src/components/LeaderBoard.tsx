@@ -16,8 +16,8 @@ type Kol = {
 };
 
 async function getKols(): Promise<Kol[]> {
-  // Use mock data during static build to avoid invalid fetch URLs
-  if (process.env.NEXT_PHASE === "phase-production-build") {
+  // Use mock data during Vercel static build (when VERCEL_URL is set but not in runtime)
+  if (process.env.VERCEL_URL && typeof window === "undefined") {
     return [
       { id: 1, username: "aeyakovenko", display_name: "Anatoly", avatar_url: "https://unavatar.io/x/aeyakovenko", badge: "💎", accuracy: 93.5, calls: 87, roi: "+842%" },
       { id: 2, username: "GiganticRebirth", display_name: "GCR", avatar_url: "https://unavatar.io/x/GiganticRebirth", badge: "💎", accuracy: 91.2, calls: 156, roi: "+1267%" },

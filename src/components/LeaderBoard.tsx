@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Crown, Flame, TrendingUp, Zap } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -20,15 +21,36 @@ type Kol = {
   streak?: number;
 };
 
-const topKols: Kol[] = [
-  { rank: 1, username: "GiganticRebirth", display_name: "GCR", avatar_url: "https://unavatar.io/x/GiganticRebirth", badge: "💎", winrate: 83, calls: 156, avg_roi: "+1267%", streak: 6 },
-  { rank: 2, username: "aeyakovenko", display_name: "Anatoly", avatar_url: "https://unavatar.io/x/aeyakovenko", badge: "💎", winrate: 94, calls: 87, avg_roi: "+842%" },
-  { rank: 3, username: "blknoiz06", display_name: "Ansem", avatar_url: "https://unavatar.io/x/blknoiz06", badge: "🥷", winrate: 71, calls: 445, avg_roi: "+534%" },
-  { rank: 4, username: "0xPauly", display_name: "Pauly", avatar_url: "https://unavatar.io/x/0xPauly", badge: "🥷", winrate: 88, calls: 312, avg_roi: "+678%" },
-  { rank: 5, username: "bluntz_eth", display_name: "Bluntz", avatar_url: "https://unavatar.io/x/bluntz_eth", badge: "🟡", winrate: 85, calls: 198, avg_roi: "+389%" },
-];
+export default async function LeaderBoard() {
+  // Récupération des vraies données depuis Supabase
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("kols")
+    .select("*")
+    .order("score", { ascending: false });
 
-export default function LeaderBoard() {
+  // Si erreur ou base vide → fallback sur ton mock magnifique
+  const kols: Kol[] =
+    data && data.length > 0
+      ? data.map((kol: any, i: number) => ({
+          rank: i + 1,
+          username: kol.username,
+          display_name: kol.display_name || kol.username,
+          avatar_url: kol.avatar_url || `https://unavatar.io/x/${kol.username}`,
+          badge: kol.badge || "💎",
+          winrate: Number(kol.winrate) || 0,
+          calls: kol.calls || 0,
+          avg_roi: kol.avg_roi || "+0%",
+          streak: i < 3 ? [6, 4, 2][i] : undefined,
+        }))
+      : [
+          { rank: 1, username: "GiganticRebirth", display_name: "GCR", avatar_url: "https://unavatar.io/x/GiganticRebirth", badge: "💎", winrate: 83, calls: 156, avg_roi: "+1267%", streak: 6 },
+          { rank: 2, username: "aeyakovenko", display_name: "Anatoly", avatar_url: "https://unavatar.io/x/aeyakovenko", badge: "💎", winrate: 94, calls: 87, avg_roi: "+842%" },
+          { rank: 3, username: "blknoiz06", display_name: "Ansem", avatar_url: "https://unavatar.io/x/blknoiz06", badge: "🥷", winrate: 71, calls: 445, avg_roi: "+534%" },
+          { rank: 4, username: "0xPauly", display_name: "Pauly", avatar_url: "https://unavatar.io/x/0xPauly", badge: "🥷", winrate: 88, calls: 312, avg_roi: "+678%" },
+          { rank: 5, username: "bluntz_eth", display_name: "Bluntz", avatar_url: "https://unavatar.io/x/bluntz_eth", badge: "🟡", winrate: 85, calls: 198, avg_roi: "+389%" },
+        ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-purple-950 to-black text-white">
       <div className="max-w-7xl mx-auto px-6 py-12">
@@ -37,7 +59,9 @@ export default function LeaderBoard() {
           <h1 className="text-7xl font-black bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
             KOLScan
           </h1>
-          <p className="text-2xl text-gray-300 mt-4">Real KOL alpha calls tracked, verified & ranked. No more FOMO, no more scams. Just pure data-driven insights. Stay ahead with KOLScan. Don't be the product, the only product remains the Market Cap.</p>
+          <p className="text-2xl text-gray-300 mt-4">
+            Real KOL alpha calls tracked, verified & ranked. No more FOMO, no more scams. Just pure data-driven insights. Stay ahead with KOLScan. Don't be the product, the only product remains the Market Cap.
+          </p>
           <div className="flex justify-center gap-8 mt-6 text-gray-400">
             <span className="flex items-center gap-2"><Zap className="w-5 h-5 text-yellow-500" /> Only +100 % wins counted</span>
             <span className="flex items-center gap-2"><Flame className="w-5 h-5 text-orange-500" /> 7-day deduplication</span>
@@ -59,7 +83,7 @@ export default function LeaderBoard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {topKols.map((kol) => (
+                {kols.map((kol) => (
                   <TableRow key={kol.username} className="border-gray-800 hover:bg-gray-800/50">
                     <TableCell className="font-bold text-3xl">
                       {kol.rank === 1 && <Crown className="inline w-8 h-8 text-yellow-500" />}

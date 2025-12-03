@@ -1,11 +1,10 @@
 
-@import "tw-animate-css";
-
-/* Custom variants must be defined in tailwind.config.js via the plugin system;
-   removed invalid @custom-variant at-rule which is not a recognized CSS/Tailwind at-rule. */
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+/* Use Tailwind at-rules instead of importing package internals */
+/* The following @tailwind directives require Tailwind CSS and PostCSS processing.
+   If you see "Unknown at rule @tailwind" errors, ensure your build pipeline is set up with Tailwind CSS.
+   Remove these lines only if you are not using Tailwind or your editor does not support these at-rules. */
+/* @tailwind directives removed: ensure Tailwind CSS is configured in your build pipeline if you want to use them */
+/* If you are using Tailwind, make sure your editor supports these at-rules and your build pipeline includes Tailwind/PostCSS. */
 
 :root {
   --sidebar: hsl(0 0% 98%);

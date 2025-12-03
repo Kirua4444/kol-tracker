@@ -1,11 +1,11 @@
 
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Custom variants must be defined in tailwind.config.js via the plugin system;
+   removed invalid @custom-variant at-rule which is not a recognized CSS/Tailwind at-rule. */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 :root {
   --sidebar: hsl(0 0% 98%);
@@ -29,7 +29,7 @@
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
 
-@theme inline {
+:root[data-theme="inline"] {
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -42,9 +42,13 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    /* Use CSS variables directly to avoid Tailwind unknown-utility errors during build */
+    border-color: hsl(var(--border));
+    outline-color: hsl(var(--ring));
+    outline-offset: 0.25rem;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 }

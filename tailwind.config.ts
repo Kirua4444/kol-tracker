@@ -46,6 +46,17 @@ const config: Config = {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+      // Ensure Tailwind generates utilities for these custom keys
+      borderColor: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+      },
+      outlineColor: {
+        ring: "hsl(var(--ring))",
+      },
+      ringColor: {
+        ring: "hsl(var(--ring))",
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

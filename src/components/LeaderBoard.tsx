@@ -60,7 +60,7 @@ export default async function LeaderBoard() {
           The most accurate KOL leaderboard on Crypto Twitter
         </p>
         <p className="text-center text-gray-400 text-lg mb-16">
-          +100 % wins only • Real alpha only • 7-day dedup
+          Real KOL alpha calls tracked, verified & ranked. No more FOMO, no more scams. Just pure data-driven insights. Stay ahead with KOLScan. Don't be the product, the only product remains the Market Cap.
         </p>
 
         <Card className="border-gray-800 bg-gray-900/50 backdrop-blur-lg rounded-3xl overflow-hidden">

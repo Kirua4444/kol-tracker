@@ -1,6 +1,7 @@
 // scripts/historical-scraper-coingecko.js
 import { createClient } from '@supabase/supabase-js';
-import fetch from 'node-fetch';
+
+// Node 18+ / 20+ / 22+ already include fetch globally — no import needed.
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -9,8 +10,7 @@ const supabase = createClient(
 
 const BEARER = process.env.TWITTER_BEARER_TOKEN;
 
-// Mapping manuel des symboles → CoinGecko ID (les plus courants sur Solana + ETH)
-// On l’enrichira au fur et à mesure – 100 % suffisant pour le premier run
+// Mapping manuel des symboles → CoinGecko ID
 const SYMBOL_TO_ID = {
   WIF: 'dogwifhat',
   BONK: 'bonk',
@@ -33,32 +33,33 @@ const SYMBOL_TO_ID = {
   PNUT: 'peanut-the-squirrel',
   ACT: 'act-i-the-ai-prophecy',
   SPX: 'spx6900',
-  // tu peux rajouter les nouveaux au fur et à mesure
 };
 
-const BULLISH_KEYWORDS = ['buy','aped','long','loading','moon','10x','100x','sending','pumping','bought','in','entry','add','adding','lfg','all in','🚀','🌙','💎'];
+const BULLISH_KEYWORDS = [
+  'buy','aped','long','loading','moon','10x','100x','sending','pumping',
+  'bought','in','entry','add','adding','lfg','all in','🚀','🌙','💎'
+];
 
 async function sleep(ms) { await new Promise(r => setTimeout(r, ms)); }
 
-// Récupère tous les usernames depuis la table kols
 async function getKols() {
-  const { data } = await supabase.from('kols').select('username');
+  const { data, error } = await supabase.from('kols').select('username');
+  if (error) throw error;
   return data.map(k => k.username);
 }
 
+// Fetch tweets
 async function getHistoricalTweets(username, since = '2025-06-01') {
   let tweets = [];
   let pagination_token = null;
 
   do {
-    // 1. Récupère l’user ID
     const userRes = await fetch(`https://api.twitter.com/2/users/by/username/${username}`, {
       headers: { Authorization: `Bearer ${BEARER}` }
     });
     const userJson = await userRes.json();
     if (!userJson.data?.id) break;
 
-    // 2. Récupère les tweets
     let url = `https://api.twitter.com/2/users/${userJson.data.id}/tweets?tweet.fields=created_at&max_results=100&start_time=${since}T00:00:00Z`;
     if (pagination_token) url += `&pagination_token=${pagination_token}`;
 
@@ -77,7 +78,7 @@ async function getHistoricalTweets(username, since = '2025-06-01') {
   return tweets;
 }
 
-// Récupère prix, ATH et MC peak via CoinGecko (gratuit)
+// Fetch data from CoinGecko
 async function getTokenDataFromGecko(symbol) {
   const id = SYMBOL_TO_ID[symbol];
   if (!id) return null;
@@ -85,7 +86,7 @@ async function getTokenDataFromGecko(symbol) {
   try {
     const [priceRes, histRes] = await Promise.all([
       fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_market_cap=true`),
-      fetch(`https://api.coingecko.com/api/v3/coins/${id}/market_chart/range?vs_currency=usd&from=1717190400&to=${Math.floor(Date.now()/1000)}`) // depuis 1er juin 2025
+      fetch(`https://api.coingecko.com/api/v3/coins/${id}/market_chart/range?vs_currency=usd&from=1717190400&to=${Math.floor(Date.now()/1000)}`)
     ]);
 
     const priceData = await priceRes.json();
@@ -125,7 +126,6 @@ async function main() {
       if (symbols.length === 0) continue;
 
       for (const symbol of symbols) {
-        // Déduplication 7 jours
         const { data: exists } = await supabase
           .from('calls')
           .select('id')
@@ -159,6 +159,7 @@ async function main() {
         console.log(`Call inséré → $${symbol} par @${username}`);
       }
     }
+
     await sleep(3000);
   }
 
